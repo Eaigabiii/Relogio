@@ -35,9 +35,57 @@
             </p>
         </header>
 
+        <!-- Conversor de Fuso Horário -->
+        <section class="mb-12 bg-white p-6 sm:p-8 rounded-xl shadow-lg">
+            <h2 class="text-2xl md:text-3xl font-bold text-green-800 mb-6 text-center">
+                Conversor de Fuso Horário
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 md:items-end gap-4">
+                
+                <!-- Coluna 1: Inputs de Data e Hora -->
+                <div class="space-y-4">
+                    <div>
+                        <label for="convert-date" class="block text-sm font-medium text-gray-700 mb-1">Data de Origem</label>
+                        <input type="date" id="convert-date" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label for="convert-time" class="block text-sm font-medium text-gray-700 mb-1">Hora de Origem</label>
+                        <input type="time" id="convert-time" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    </div>
+                </div>
+
+                <!-- Coluna 2: Selects de Fuso Horário -->
+                <div class="space-y-4">
+                    <div>
+                        <label for="convert-from-zone" class="block text-sm font-medium text-gray-700 mb-1">De:</label>
+                        <select id="convert-from-zone" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <!-- Opções de fuso horário preenchidas por JS -->
+                        </select>
+                    </div>
+                    <div>
+                        <label for="convert-to-zone" class="block text-sm font-medium text-gray-700 mb-1">Para:</label>
+                        <select id="convert-to-zone" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <!-- Opções de fuso horário preenchidas por JS -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Coluna 3: Botão e Resultado -->
+                <div class="space-y-4">
+                    <button id="convert-button" class="w-full bg-green-700 text-white font-bold text-lg p-3 rounded-lg shadow-md hover:bg-green-800 transition-colors duration-200">
+                        Converter
+                    </button>
+                    <div id="conversion-result" class="text-center text-lg font-semibold text-gray-800 bg-gray-50 p-4 rounded-lg min-h-[60px] flex items-center justify-center">
+                        Selecione data, hora e fusos.
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Grade de Relógios -->
-        <main id="clocks-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-            <!-- Os cartões de relógio serão inseridos aqui pelo JavaScript -->
+        <main id="clocks-container" class="space-y-12">
+            <!-- As seções de relógio serão inseridas aqui pelo JavaScript -->
         </main>
 
     </div>
@@ -46,101 +94,387 @@
         document.addEventListener('DOMContentLoaded', () => {
 
             // --- CONFIGURAÇÃO DOS RELÓGIOS ---
-            // Adicione ou remova cidades facilmente desta lista.
-            // Use fusos horários padrão da IANA: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-            const locations = [
-                // --- AMÉRICAS ---
-                
-                // EUA (Multi-fuso)
-                { city: 'Nova Iorque', region: 'EUA (Leste)', timezone: 'America/New_York', id: 'nyc' },
-                { city: 'Chicago', region: 'EUA (Central)', timezone: 'America/Chicago', id: 'chicago' },
-                { city: 'Denver', region: 'EUA (Montanha)', timezone: 'America/Denver', id: 'denver' },
-                { city: 'Los Angeles', region: 'EUA (Pacífico)', timezone: 'America/Los_Angeles', id: 'la' },
-                { city: 'Anchorage', region: 'EUA (Alasca)', timezone: 'America/Anchorage', id: 'anchorage' },
-                { city: 'Honolulu', region: 'EUA (Havaí)', timezone: 'Pacific/Honolulu', id: 'honolulu' },
-                
-                // Canadá (Multi-fuso)
-                { city: 'Toronto', region: 'Canadá (Leste)', timezone: 'America/Toronto', id: 'toronto' },
-                { city: 'Winnipeg', region: 'Canadá (Central)', timezone: 'America/Winnipeg', id: 'winnipeg' },
-                { city: 'Vancouver', region: 'Canadá (Pacífico)', timezone: 'America/Vancouver', id: 'vancouver' },
-                
-                // Brasil (Multi-fuso)
-                { city: 'Brasília', region: 'Brasil (Brasília)', timezone: 'America/Sao_Paulo', id: 'brasilia' },
-                { city: 'Manaus', region: 'Brasil (Amazonas)', timezone: 'America/Manaus', id: 'manaus' },
-                { city: 'Rio Branco', region: 'Brasil (Acre)', timezone: 'America/Rio_Branco', id: 'riobranco' },
-
-                // Outras Américas
-                { city: 'Cidade do México', region: 'México', timezone: 'America/Mexico_City', id: 'mexicocity' },
-                { city: 'Lima', region: 'Peru', timezone: 'America/Lima', id: 'lima' },
-                { city: 'La Paz', region: 'Bolívia', timezone: 'America/La_Paz', id: 'lapaz' },
-                { city: 'Buenos Aires', region: 'Argentina', timezone: 'America/Argentina/Buenos_Aires', id: 'buenosaires' },
-
-                // --- EUROPA ---
-                { city: 'Londres', region: 'Reino Unido', timezone: 'Europe/London', id: 'london' },
-                { city: 'Dublin', region: 'Irlanda', timezone: 'Europe/Dublin', id: 'dublin' },
-                { city: 'Paris', region: 'França', timezone: 'Europe/Paris', id: 'paris' },
-                { city: 'Berlim', region: 'Alemanha', timezone: 'Europe/Berlin', id: 'berlin' },
-                { city: 'Amsterdã', region: 'Holanda', timezone: 'Europe/Amsterdam', id: 'amsterdam' },
-                { city: 'Zurique', region: 'Suíça', timezone: 'Europe/Zurich', id: 'zurich' },
-                { city: 'Roma', region: 'Itália', timezone: 'Europe/Rome', id: 'rome' },
-
-                // Rússia (Multi-fuso)
-                { city: 'Kaliningrado', region: 'Rússia (Oeste)', timezone: 'Europe/Kaliningrad', id: 'kaliningrad' },
-                { city: 'Moscou', region: 'Rússia (Moscou)', timezone: 'Europe/Moscow', id: 'moscow' },
-                { city: 'Yekaterinburg', region: 'Rússia (Urais)', timezone: 'Asia/Yekaterinburg', id: 'yekaterinburg' },
-                { city: 'Vladivostok', region: 'Rússia (Leste)', timezone: 'Asia/Vladivostok', id: 'vladivostok' },
-
-                // --- ÁSIA E ORIENTE MÉDIO ---
-                { city: 'Dubai', region: 'Emirados Árabes', timezone: 'Asia/Dubai', id: 'dubai' },
-                { city: 'Baku', region: 'Azerbaijão', timezone: 'Asia/Baku', id: 'baku' },
-                { city: 'Mumbai', region: 'Índia', timezone: 'Asia/Kolkata', id: 'mumbai' },
-                { city: 'Bangkok', region: 'Tailândia', timezone: 'Asia/Bangkok', id: 'bangkok' },
-                { city: 'Singapura', region: 'Singapura', timezone: 'Asia/Singapore', id: 'singapore' },
-                { city: 'Pequim', region: 'China', timezone: 'Asia/Shanghai', id: 'beijing' },
-                { city: 'Tóquio', region: 'Japão', timezone: 'Asia/Tokyo', id: 'tokyo' },
-
-                // --- OCEANIA ---
-                
-                // Austrália (Multi-fuso)
-                { city: 'Perth', region: 'Austrália (Oeste)', timezone: 'Australia/Perth', id: 'perth' },
-                { city: 'Darwin', region: 'Austrália (Central)', timezone: 'Australia/Darwin', id: 'darwin' },
-                { city: 'Sydney', region: 'Austrália (Leste)', timezone: 'Australia/Sydney', id: 'sydney' },
-                
-                // Nova Zelândia
-                { city: 'Auckland', region: 'Nova Zelândia', timezone: 'Pacific/Auckland', id: 'auckland' },
-                
-                // --- ÁFRICA ---
-                { city: 'Cairo', region: 'Egito', timezone: 'Africa/Cairo', id: 'cairo' },
-                { city: 'Joanesburgo', region: 'África do Sul', timezone: 'Africa/Johannesburg', id: 'johannesburg' },
+            // Estrutura de dados organizada por regiões
+            const regions = [
+                {
+                    name: "Américas",
+                    locations: [
+                        // EUA
+                        { city: 'Nova Iorque', region: 'EUA (Leste)', timezone: 'America/New_York', id: 'nyc' },
+                        { city: 'Chicago', region: 'EUA (Central)', timezone: 'America/Chicago', id: 'chicago' },
+                        { city: 'Denver', region: 'EUA (Montanha)', timezone: 'America/Denver', id: 'denver' },
+                        { city: 'Phoenix', region: 'EUA (Montanha/S. AZ)', timezone: 'America/Phoenix', id: 'phoenix' },
+                        { city: 'Los Angeles', region: 'EUA (Pacífico)', timezone: 'America/Los_Angeles', id: 'la' },
+                        { city: 'Anchorage', region: 'EUA (Alasca)', timezone: 'America/Anchorage', id: 'anchorage' },
+                        { city: 'Honolulu', region: 'EUA (Havaí)', timezone: 'Pacific/Honolulu', id: 'honolulu' },
+                        { city: 'Miami', region: 'EUA (Leste)', timezone: 'America/New_York', id: 'miami' }, // Mesmo fuso de NY
+                        { city: 'Seattle', region: 'EUA (Pacífico)', timezone: 'America/Los_Angeles', id: 'seattle' }, // Mesmo fuso de LA
+                        // Canadá
+                        { city: 'St. John\'s', region: 'Canadá (Newfoundland)', timezone: 'America/St_Johns', id: 'stjohns' },
+                        { city: 'Halifax', region: 'Canadá (Atlântico)', timezone: 'America/Halifax', id: 'halifax' },
+                        { city: 'Toronto', region: 'Canadá (Leste)', timezone: 'America/Toronto', id: 'toronto' },
+                        { city: 'Winnipeg', region: 'Canadá (Central)', timezone: 'America/Winnipeg', id: 'winnipeg' },
+                        { city: 'Calgary', region: 'Canadá (Montanha)', timezone: 'America/Edmonton', id: 'calgary' },
+                        { city: 'Vancouver', region: 'Canadá (Pacífico)', timezone: 'America/Vancouver', id: 'vancouver' },
+                        // Brasil
+                        { city: 'Fernando de Noronha', region: 'Brasil (Noronha)', timezone: 'America/Noronha', id: 'noronha' },
+                        { city: 'Recife', region: 'Brasil (Nordeste)', timezone: 'America/Recife', id: 'recife' },
+                        { city: 'Brasília', region: 'Brasil (Brasília)', timezone: 'America/Sao_Paulo', id: 'brasilia' },
+                        { city: 'Manaus', region: 'Brasil (Amazonas)', timezone: 'America/Manaus', id: 'manaus' },
+                        { city: 'Rio Branco', region: 'Brasil (Acre)', timezone: 'America/Rio_Branco', id: 'riobranco' },
+                        // México
+                        { city: 'Cancún', region: 'México (Quintana Roo)', timezone: 'America/Cancun', id: 'cancun' },
+                        { city: 'Cidade do México', region: 'México (Central)', timezone: 'America/Mexico_City', id: 'mexicocity' },
+                        { city: 'Tijuana', region: 'México (Pacífico)', timezone: 'America/Tijuana', id: 'tijuana' },
+                        // América do Sul e Central
+                        { city: 'Buenos Aires', region: 'Argentina', timezone: 'America/Argentina/Buenos_Aires', id: 'buenosaires' },
+                        { city: 'La Paz', region: 'Bolívia', timezone: 'America/La_Paz', id: 'lapaz' },
+                        { city: 'Santiago', region: 'Chile', timezone: 'America/Santiago', id: 'santiago' },
+                        { city: 'Bogotá', region: 'Colômbia', timezone: 'America/Bogota', id: 'bogota' },
+                        { city: 'San José', region: 'Costa Rica', timezone: 'America/Costa_Rica', id: 'sanjose' },
+                        { city: 'Havana', region: 'Cuba', timezone: 'America/Havana', id: 'havana' },
+                        { city: 'Quito', region: 'Equador', timezone: 'America/Guayaquil', id: 'quito' },
+                        { city: 'Kingston', region: 'Jamaica', timezone: 'America/Jamaica', id: 'kingston' },
+                        { city: 'Panamá', region: 'Panamá', timezone: 'America/Panama', id: 'panama' },
+                        { city: 'Assunção', region: 'Paraguai', timezone: 'America/Asuncion', id: 'asuncion' },
+                        { city: 'Lima', region: 'Peru', timezone: 'America/Lima', id: 'lima' },
+                        { city: 'Montevidéu', region: 'Uruguai', timezone: 'America/Montevideo', id: 'montevideo' },
+                        { city: 'Caracas', region: 'Venezuela', timezone: 'America/Caracas', id: 'caracas' },
+                    ]
+                },
+                {
+                    name: "Europa",
+                    locations: [
+                        { city: 'Londres', region: 'Reino Unido', timezone: 'Europe/London', id: 'london' },
+                        { city: 'Dublin', region: 'Irlanda', timezone: 'Europe/Dublin', id: 'dublin' },
+                        { city: 'Lisboa', region: 'Portugal', timezone: 'Europe/Lisbon', id: 'lisbon' },
+                        { city: 'Madri', region: 'Espanha', timezone: 'Europe/Madrid', id: 'madrid' },
+                        { city: 'Paris', region: 'França', timezone: 'Europe/Paris', id: 'paris' },
+                        { city: 'Bruxelas', region: 'Bélgica', timezone: 'Europe/Brussels', id: 'brussels' },
+                        { city: 'Amsterdã', region: 'Holanda', timezone: 'Europe/Amsterdam', id: 'amsterdam' },
+                        { city: 'Berlim', region: 'Alemanha', timezone: 'Europe/Berlin', id: 'berlin' },
+                        { city: 'Zurique', region: 'Suíça', timezone: 'Europe/Zurich', id: 'zurich' },
+                        { city: 'Roma', region: 'Itália', timezone: 'Europe/Rome', id: 'rome' },
+                        { city: 'Viena', region: 'Áustria', timezone: 'Europe/Vienna', id: 'vienna' },
+                        { city: 'Praga', region: 'Rep. Tcheca', timezone: 'Europe/Prague', id: 'prague' },
+                        { city: 'Copenhague', region: 'Dinamarca', timezone: 'Europe/Copenhagen', id: 'copenhagen' },
+                        { city: 'Estocolmo', region: 'Suécia', timezone: 'Europe/Stockholm', id: 'stockholm' },
+                        { city: 'Oslo', region: 'Noruega', timezone: 'Europe/Oslo', id: 'oslo' },
+                        { city: 'Varsóvia', region: 'Polônia', timezone: 'Europe/Warsaw', id: 'warsaw' },
+                        { city: 'Budapeste', region: 'Hungria', timezone: 'Europe/Budapest', id: 'budapest' },
+                        { city: 'Atenas', region: 'Grécia', timezone: 'Europe/Athens', id: 'athens' },
+                        { city: 'Helsinque', region: 'Finlândia', timezone: 'Europe/Helsinki', id: 'helsinki' },
+                        { city: 'Bucareste', region: 'Romênia', timezone: 'Europe/Bucharest', id: 'bucharest' },
+                        { city: 'Kiev', region: 'Ucrânia', timezone: 'Europe/Kyiv', id: 'kyiv' },
+                        { city: 'Istambul', region: 'Turquia', timezone: 'Europe/Istanbul', id: 'istanbul' },
+                    ]
+                },
+                {
+                    name: "Rússia (Multi-fuso)",
+                    locations: [
+                        { city: 'Kaliningrado', region: 'Rússia (UTC+2)', timezone: 'Europe/Kaliningrad', id: 'kaliningrad' },
+                        { city: 'Moscou', region: 'Rússia (UTC+3)', timezone: 'Europe/Moscow', id: 'moscow' },
+                        { city: 'Samara', region: 'Rússia (UTC+4)', timezone: 'Europe/Samara', id: 'samara' },
+                        { city: 'Yekaterinburg', region: 'Rússia (UTC+5)', timezone: 'Asia/Yekaterinburg', id: 'yekaterinburg' },
+                        { city: 'Omsk', region: 'Rússia (UTC+6)', timezone: 'Asia/Omsk', id: 'omsk' },
+                        { city: 'Krasnoyarsk', region: 'Rússia (UTC+7)', timezone: 'Asia/Krasnoyarsk', id: 'krasnoyarsk' },
+                        { city: 'Irkutsk', region: 'Rússia (UTC+8)', timezone: 'Asia/Irkutsk', id: 'irkutsk' },
+                        { city: 'Yakutsk', region: 'Rússia (UTC+9)', timezone: 'Asia/Yakutsk', id: 'yakutsk' },
+                        { city: 'Vladivostok', region: 'Rússia (UTC+10)', timezone: 'Asia/Vladivostok', id: 'vladivostok' },
+                        { city: 'Magadan', region: 'Rússia (UTC+11)', timezone: 'Asia/Magadan', id: 'magadan' },
+                        { city: 'Kamchatka', region: 'Rússia (UTC+12)', timezone: 'Asia/Kamchatka', id: 'kamchatka' },
+                    ]
+                },
+                {
+                    name: "Ásia e Oriente Médio",
+                    locations: [
+                        { city: 'Jerusalém', region: 'Israel', timezone: 'Asia/Jerusalem', id: 'jerusalem' },
+                        { city: 'Bagdá', region: 'Iraque', timezone: 'Asia/Baghdad', id: 'baghdad' },
+                        { city: 'Riad', region: 'Arábia Saudita', timezone: 'Asia/Riyadh', id: 'riyadh' },
+                        { city: 'Doha', region: 'Catar', timezone: 'Asia/Qatar', id: 'doha' },
+                        { city: 'Dubai', region: 'Emirados Árabes', timezone: 'Asia/Dubai', id: 'dubai' },
+                        { city: 'Baku', region: 'Azerbaijão', timezone: 'Asia/Baku', id: 'baku' },
+                        { city: 'Teerã', region: 'Irã', timezone: 'Asia/Tehran', id: 'tehran' },
+                        { city: 'Karachi', region: 'Paquistão', timezone: 'Asia/Karachi', id: 'karachi' },
+                        { city: 'Mumbai', region: 'Índia', timezone: 'Asia/Kolkata', id: 'mumbai' },
+                        { city: 'Dhaka', region: 'Bangladesh', timezone: 'Asia/Dhaka', id: 'dhaka' },
+                        { city: 'Bangkok', region: 'Tailândia', timezone: 'Asia/Bangkok', id: 'bangkok' },
+                        { city: 'Jacarta', region: 'Indonésia', timezone: 'Asia/Jakarta', id: 'jakarta' },
+                        { city: 'Ho Chi Minh', region: 'Vietnã', timezone: 'Asia/Ho_Chi_Minh', id: 'hochiminh' },
+                        { city: 'Singapura', region: 'Singapura', timezone: 'Asia/Singapore', id: 'singapore' },
+                        { city: 'Kuala Lumpur', region: 'Malásia', timezone: 'Asia/Kuala_Lumpur', id: 'kualalumpur' },
+                        { city: 'Manila', region: 'Filipinas', timezone: 'Asia/Manila', id: 'manila' },
+                        { city: 'Pequim', region: 'China', timezone: 'Asia/Shanghai', id: 'beijing' },
+                        { city: 'Hong Kong', region: 'China (Hong Kong)', timezone: 'Asia/Hong_Kong', id: 'hongkong' },
+                        { city: 'Taipei', region: 'Taiwan', timezone: 'Asia/Taipei', id: 'taipei' },
+                        { city: 'Seul', region: 'Coreia do Sul', timezone: 'Asia/Seoul', id: 'seoul' },
+                        { city: 'Tóquio', region: 'Japão', timezone: 'Asia/Tokyo', id: 'tokyo' },
+                    ]
+                },
+                {
+                    name: "Oceania",
+                    locations: [
+                        // Austrália
+                        { city: 'Perth', region: 'Austrália (Oeste)', timezone: 'Australia/Perth', id: 'perth' },
+                        { city: 'Darwin', region: 'Austrália (Central)', timezone: 'Australia/Darwin', id: 'darwin' },
+                        { city: 'Adelaide', region: 'Austrália (Centro-Sul)', timezone: 'Australia/Adelaide', id: 'adelaide' },
+                        { city: 'Brisbane', region: 'Austrália (Leste)', timezone: 'Australia/Brisbane', id: 'brisbane' },
+                        { city: 'Sydney', region: 'Austrália (Sudeste)', timezone: 'Australia/Sydney', id: 'sydney' },
+                        { city: 'Melbourne', region: 'Austrália (Sudeste)', timezone: 'Australia/Melbourne', id: 'melbourne' },
+                        // Nova Zelândia
+                        { city: 'Auckland', region: 'Nova Zelândia', timezone: 'Pacific/Auckland', id: 'auckland' },
+                        { city: 'Wellington', region: 'Nova Zelândia', timezone: 'Pacific/Auckland', id: 'wellington' },
+                        // Ilhas do Pacífico
+                        { city: 'Port Moresby', region: 'Papua-Nova Guiné', timezone: 'Pacific/Port_Moresby', id: 'portmoresby' },
+                        { city: 'Suva', region: 'Fiji', timezone: 'Pacific/Fiji', id: 'suva' },
+                        { city: 'Apia', region: 'Samoa', timezone: 'Pacific/Apia', id: 'apia' },
+                        { city: 'Pago Pago', region: 'Samoa Americana', timezone: 'Pacific/Pago_Pago', id: 'pagopago' },
+                    ]
+                },
+                {
+                    name: "África",
+                    locations: [
+                        { city: 'Casablanca', region: 'Marrocos', timezone: 'Africa/Casablanca', id: 'casablanca' },
+                        { city: 'Argel', region: 'Algéria', timezone: 'Africa/Algiers', id: 'algiers' },
+                        { city: 'Dakar', region: 'Senegal', timezone: 'Africa/Dakar', id: 'dakar' },
+                        { city: 'Acra', region: 'Gana', timezone: 'Africa/Accra', id: 'accra' },
+                        { city: 'Lagos', region: 'Nigéria', timezone: 'Africa/Lagos', id: 'lagos' },
+                        { city: 'Cairo', region: 'Egito', timezone: 'Africa/Cairo', id: 'cairo' },
+                        { city: 'Nairóbi', region: 'Quênia', timezone: 'Africa/Nairobi', id: 'nairobi' },
+                        { city: 'Joanesburgo', region: 'África do Sul', timezone: 'Africa/Johannesburg', id: 'johannesburg' },
+                    ]
+                }
             ];
 
-            const grid = document.getElementById('clocks-grid');
+            // Criar uma matriz plana para o conversor e a atualização de relógios
+            const allLocations = regions.flatMap(region => region.locations);
 
-            // 1. Criar os cartões de relógio dinamicamente
-            locations.forEach(loc => {
-                const card = document.createElement('div');
-                card.className = "bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center text-center transform transition-transform duration-300 hover:scale-105 hover:shadow-xl";
+            const mainContainer = document.getElementById('clocks-container');
+            
+            // --- INICIALIZAÇÃO DO CONVERSOR ---
+            const dateInput = document.getElementById('convert-date');
+            const timeInput = document.getElementById('convert-time');
+            const fromZoneSelect = document.getElementById('convert-from-zone');
+            const toZoneSelect = document.getElementById('convert-to-zone');
+            const convertButton = document.getElementById('convert-button');
+            const resultDiv = document.getElementById('conversion-result');
+
+            function populateConverterSelects() {
+                // Ordena as localizações alfabeticamente por cidade
+                const sortedLocations = [...allLocations].sort((a, b) => a.city.localeCompare(b.city));
+
+                const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
                 
-                card.innerHTML = `
-                    <h3 class="text-2xl font-semibold text-green-800">${loc.city}</h3>
-                    <p class="text-sm text-gray-500 mb-4">${loc.region}</p>
+                // Adiciona o fuso do usuário como primeira opção
+                const userOptionFrom = document.createElement('option');
+                userOptionFrom.value = userTimezone;
+                userOptionFrom.textContent = `Seu Fuso Horário (${userTimezone.split('/').pop().replace('_', ' ')})`;
+                fromZoneSelect.appendChild(userOptionFrom);
+
+                const userOptionTo = document.createElement('option');
+                userOptionTo.value = userTimezone;
+                userOptionTo.textContent = `Seu Fuso Horário (${userTimezone.split('/').pop().replace('_', ' ')})`;
+                toZoneSelect.appendChild(userOptionTo);
+
+                // Adiciona um separador
+                fromZoneSelect.appendChild(document.createElement('option')).disabled = true;
+                fromZoneSelect.lastChild.textContent = '──────────';
+                toZoneSelect.appendChild(document.createElement('option')).disabled = true;
+                toZoneSelect.lastChild.textContent = '──────────';
+                
+                // Adiciona todos os locais ordenados
+                sortedLocations.forEach(loc => {
+                    const optionFrom = document.createElement('option');
+                    optionFrom.value = loc.timezone;
+                    optionFrom.textContent = `${loc.city} (${loc.region})`;
+                    fromZoneSelect.appendChild(optionFrom);
+
+                    const optionTo = document.createElement('option');
+                    optionTo.value = loc.timezone;
+                    optionTo.textContent = `${loc.city} (${loc.region})`;
+                    toZoneSelect.appendChild(optionTo);
+                });
+
+                // Define valores padrão
+                fromZoneSelect.value = 'America/New_York'; // Padrão "De"
+                toZoneSelect.value = 'America/Sao_Paulo'; // Padrão "Para" (Brasil)
+            }
+
+            function setConverterDefaults() {
+                const now = new Date();
+                
+                // Formata a data para YYYY-MM-DD
+                const year = now.getFullYear();
+                const month = (now.getMonth() + 1).toString().padStart(2, '0');
+                const day = now.getDate().toString().padStart(2, '0');
+                dateInput.value = `${year}-${month}-${day}`;
+                
+                // Formata a hora para HH:MM
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                timeInput.value = `${hours}:${minutes}`;
+            }
+
+            function handleConversion() {
+                const dateValue = dateInput.value;
+                const timeValue = timeInput.value;
+                const fromZoneValue = fromZoneSelect.value;
+                const toZoneValue = toZoneSelect.value;
+
+                if (!dateValue || !timeValue) {
+                    resultDiv.textContent = 'Por favor, insira data e hora.';
+                    resultDiv.classList.add('text-red-600');
+                    return;
+                }
+
+                try {
+                    resultDiv.classList.remove('text-red-600');
                     
-                    <!-- Hora -->
-                    <div id="time-${loc.id}" class="text-5xl font-bold text-gray-900 mb-2 tabular-nums">
-                        --:--:--
-                    </div>
+                    // 1. Criar a string de data/hora ISO
+                    const isoString = `${dateValue}T${timeValue}:00`;
+
+                    // 2. Descobrir o offset do fuso de *origem* para aquela data específica (para lidar com Horário de Verão)
+                    // NOTA: Isto é complexo; uma abordagem mais simples é criar a data *como se* estivesse no fuso de origem.
+                    // Vamos tentar uma abordagem mais robusta que não dependa da análise de offset.
                     
-                    <!-- Data -->
-                    <div id="date-${loc.id}" class="text-lg text-gray-600">
-                        ---
-                    </div>
+                    // 1. Criar uma string de data sem fuso
+                    const [year, month, day] = dateValue.split('-').map(Number);
+                    const [hour, minute] = timeValue.split(':').map(Number);
+
+                    // 2. Criar uma data "falsa" no fuso local, mas com os números do fuso de origem
+                    //    Precisamos formatar isso de volta para uma string que o Intl.DateTimeFormat possa analisar
+                    //    O truque é usar o formatador "en-CA" que produz YYYY-MM-DD, e "en-GB" para a hora.
                     
-                    <!-- Fuso Horário -->
-                    <div class="text-xs text-gray-400 mt-4">
-                        ${loc.timezone}
-                    </div>
-                `;
-                grid.appendChild(card);
+                    const tempDate = new Date(Date.UTC(year, month - 1, day, hour, minute));
+                    
+                    // 3. Formatar essa data UTC *como se* ela estivesse no fuso de origem
+                    const originFormatter = new Intl.DateTimeFormat('en-CA', {
+                        timeZone: fromZoneValue,
+                        year: 'numeric', month: '2-digit', day: '2-digit',
+                        hour: '2-digit', minute: '2-digit', second: '2-digit',
+                        hour12: false
+                    });
+                    
+                    // Isso nos dá a data/hora de origem, mas ainda precisamos do timestamp real
+                    // A lógica original estava mais próxima, mas a criação do objeto Date estava errada.
+                    
+                    // Vamos voltar à lógica original e corrigi-la.
+                    const isoStringWithOffset = `${dateValue}T${timeValue}:00`;
+
+                    // O problema é que new Date("YYYY-MM-DDTHH:MM:SS-04:00") funciona,
+                    // mas new Date("YYYY-MM-DDTHH:MM:SS" + "-04:00") é diferente.
+                    
+                    // Abordagem mais limpa:
+                    // 1. Criar uma data nos componentes do fuso de origem
+                    const parts = {
+                        year: year, month: month - 1, day: day,
+                        hour: hour, minute: minute,
+                        timeZone: fromZoneValue
+                    };
+                    
+                    // 2. Formatar para obter um timestamp ISO (isto é um truque)
+                    const isoFormatter = new Intl.DateTimeFormat('en-CA', {
+                        timeZone: fromZoneValue,
+                        year: 'numeric', month: '2-digit', day: '2-digit',
+                        hour: '2-digit', minute: '2-digit', second: '2-digit',
+                        hour12: false
+                    });
+                    
+                    // Isto ainda é complicado. A lógica original de new Date(isoString + offset) estava correta.
+                    // Onde 'offset' é pego. Vamos re-validar.
+                    
+                    const offsetFormatter = new Intl.DateTimeFormat("en", {
+                        timeZone: fromZoneValue,
+                        timeZoneName: "longOffset"
+                    });
+
+                    // IMPORTANTE: Precisamos usar uma data que *esteja* nessa data/hora para obter o offset correto (Horário de Verão)
+                    // Criamos uma data temporária para verificar.
+                    const tempCheckDate = new Date(isoString);
+                    
+                    const offsetParts = offsetFormatter.formatToParts(tempCheckDate);
+                    const offset = offsetParts.find(p => p.type === "timeZoneName").value.replace('GMT', ''); // ex: "-04:00" ou "+05:30"
+                    
+                    // 3. Criar o objeto Date com o offset correto
+                    const dateInFromZone = new Date(isoString + offset);
+
+                    if (isNaN(dateInFromZone.getTime())) {
+                        throw new Error("Data inválida criada. Verifique o formato do offset.");
+                    }
+                    
+                    // 4. Formatar este objeto Date para o fuso de *destino*
+                    const resultFormatter = new Intl.DateTimeFormat('pt-BR', {
+                        timeZone: toZoneValue,
+                        weekday: 'long',
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric', // Adicionado ano para clareza
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        timeZoneName: 'short'
+                    });
+
+                    const resultString = resultFormatter.format(dateInFromZone);
+                    
+                    // 5. Exibir o resultado
+                    resultDiv.textContent = resultString.charAt(0).toUpperCase() + resultString.slice(1);
+
+                } catch (e) {
+                    console.error("Erro na conversão:", e);
+                    resultDiv.textContent = 'Erro. Verifique os valores.';
+                    resultDiv.classList.add('text-red-600');
+                }
+            }
+
+            // --- INICIALIZAÇÃO DOS RELÓGIOS ---
+            
+            // 1. Criar as seções e cartões de relógio dinamicamente
+            regions.forEach(region => {
+                // Cria a seção para a região
+                const regionSection = document.createElement('section');
+                
+                // Cria o título da região
+                const regionTitle = document.createElement('h2');
+                regionTitle.className = "text-3xl font-bold text-green-800 mb-6 pb-2 border-b-2 border-green-200";
+                regionTitle.textContent = region.name;
+                regionSection.appendChild(regionTitle);
+
+                // Cria a grade para os relógios desta região
+                const regionGrid = document.createElement('div');
+                regionGrid.className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8";
+                
+                // Adiciona os cartões de relógio à grade
+                region.locations.forEach(loc => {
+                    const card = document.createElement('div');
+                    card.className = "bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center text-center transform transition-transform duration-300 hover:scale-105 hover:shadow-xl";
+                    
+                    card.innerHTML = `
+                        <h3 class="text-2xl font-semibold text-green-800">${loc.city}</h3>
+                        <p class="text-sm text-gray-500 mb-4">${loc.region}</p>
+                        
+                        <!-- Hora -->
+                        <div id="time-${loc.id}" class="text-5xl font-bold text-gray-900 mb-2 tabular-nums">
+                            --:--:--
+                        </div>
+                        
+                        <!-- Data -->
+                        <div id="date-${loc.id}" class="text-lg text-gray-600">
+                            ---
+                        </div>
+                        
+                        <!-- Fuso Horário -->
+                        <div class="text-xs text-gray-400 mt-4">
+                            ${loc.timezone}
+                        </div>
+                    `;
+                    regionGrid.appendChild(card);
+                });
+
+                // Adiciona a grade à seção
+                regionSection.appendChild(regionGrid);
+                
+                // Adiciona a seção ao contêiner principal
+                mainContainer.appendChild(regionSection);
             });
 
             // Formatadores de data e hora (para eficiência)
@@ -151,7 +485,7 @@
             function updateClocks() {
                 const now = new Date();
 
-                locations.forEach(loc => {
+                allLocations.forEach(loc => {
                     const timeEl = document.getElementById(`time-${loc.id}`);
                     const dateEl = document.getElementById(`date-${loc.id}`);
 
@@ -182,25 +516,34 @@
                         const timeString = timeFormatters[loc.timezone].format(now);
                         const dateString = dateFormatters[loc.timezone].format(now);
                         
+                        // Define o conteúdo do texto (ESTAVA EM FALTA)
                         timeEl.textContent = timeString;
-                        // Capitaliza o dia da semana (ex: "segunda-feira" -> "Segunda-feira")
+                        // Capitaliza o primeiro caractere da data
                         dateEl.textContent = dateString.charAt(0).toUpperCase() + dateString.slice(1);
-
+                        
                     } catch (e) {
-                        console.error(`Erro ao formatar data para ${loc.timezone}:`, e);
+                        // Adiciona o bloco CATCH que estava em falta
+                        console.error(`Erro ao atualizar relógio ${loc.city}:`, e);
                         timeEl.textContent = "Erro";
-                        dateEl.textContent = "Fuso inválido";
+                        dateEl.textContent = "Inválido";
                     }
-                });
-            }
+                }); // <-- Adiciona a chave de fechamento do forEach
+            } // <-- Adiciona a chave de fechamento da função updateClocks
 
             // 3. Iniciar os relógios
             updateClocks(); // Chama imediatamente para preencher
             setInterval(updateClocks, 1000); // Atualiza a cada segundo
+
+            // 4. Iniciar o Conversor
+            populateConverterSelects();
+            setConverterDefaults();
+            convertButton.addEventListener('click', handleConversion);
         });
     </script>
 
 </body>
 </html>
+
+
 
 
