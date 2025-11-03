@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relógio Mundial - Referencia Capital</title>
+    <!-- Carrega o Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carrega a fonte Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Aplica a fonte Inter como padrão */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Garante que os números do relógio não "saltem" de largura */
+        .tabular-nums {
+            font-variant-numeric: tabular-nums;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 transition-colors duration-300">
+
+    <div class="container mx-auto px-4 py-12">
+        
+        <!-- Cabeçalho -->
+        <header class="text-center mb-12 bg-green-800 text-white p-8 rounded-xl shadow-lg">
+            <h1 class="text-4xl md:text-5xl font-bold">
+                Referencia Capital
+            </h1>
+            <p class="text-xl md:text-2xl text-green-100 mt-2">
+                Relógio Mundial Ao Vivo
+            </p>
+        </header>
+
+        <!-- Grade de Relógios -->
+        <main id="clocks-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+            <!-- Os cartões de relógio serão inseridos aqui pelo JavaScript -->
+        </main>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- CONFIGURAÇÃO DOS RELÓGIOS ---
+            // Adicione ou remova cidades facilmente desta lista.
+            // Use fusos horários padrão da IANA: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+            const locations = [
+                // --- AMÉRICAS ---
+                
+                // EUA (Multi-fuso)
+                { city: 'Nova Iorque', region: 'EUA (Leste)', timezone: 'America/New_York', id: 'nyc' },
+                { city: 'Chicago', region: 'EUA (Central)', timezone: 'America/Chicago', id: 'chicago' },
+                { city: 'Denver', region: 'EUA (Montanha)', timezone: 'America/Denver', id: 'denver' },
+                { city: 'Los Angeles', region: 'EUA (Pacífico)', timezone: 'America/Los_Angeles', id: 'la' },
+                { city: 'Anchorage', region: 'EUA (Alasca)', timezone: 'America/Anchorage', id: 'anchorage' },
+                { city: 'Honolulu', region: 'EUA (Havaí)', timezone: 'Pacific/Honolulu', id: 'honolulu' },
+                
+                // Canadá (Multi-fuso)
+                { city: 'Toronto', region: 'Canadá (Leste)', timezone: 'America/Toronto', id: 'toronto' },
+                { city: 'Winnipeg', region: 'Canadá (Central)', timezone: 'America/Winnipeg', id: 'winnipeg' },
+                { city: 'Vancouver', region: 'Canadá (Pacífico)', timezone: 'America/Vancouver', id: 'vancouver' },
+                
+                // Brasil (Multi-fuso)
+                { city: 'Brasília', region: 'Brasil (Brasília)', timezone: 'America/Sao_Paulo', id: 'brasilia' },
+                { city: 'Manaus', region: 'Brasil (Amazonas)', timezone: 'America/Manaus', id: 'manaus' },
+                { city: 'Rio Branco', region: 'Brasil (Acre)', timezone: 'America/Rio_Branco', id: 'riobranco' },
+
+                // Outras Américas
+                { city: 'Cidade do México', region: 'México', timezone: 'America/Mexico_City', id: 'mexicocity' },
+                { city: 'Lima', region: 'Peru', timezone: 'America/Lima', id: 'lima' },
+                { city: 'La Paz', region: 'Bolívia', timezone: 'America/La_Paz', id: 'lapaz' },
+                { city: 'Buenos Aires', region: 'Argentina', timezone: 'America/Argentina/Buenos_Aires', id: 'buenosaires' },
+
+                // --- EUROPA ---
+                { city: 'Londres', region: 'Reino Unido', timezone: 'Europe/London', id: 'london' },
+                { city: 'Dublin', region: 'Irlanda', timezone: 'Europe/Dublin', id: 'dublin' },
+                { city: 'Paris', region: 'França', timezone: 'Europe/Paris', id: 'paris' },
+                { city: 'Berlim', region: 'Alemanha', timezone: 'Europe/Berlin', id: 'berlin' },
+                { city: 'Amsterdã', region: 'Holanda', timezone: 'Europe/Amsterdam', id: 'amsterdam' },
+                { city: 'Zurique', region: 'Suíça', timezone: 'Europe/Zurich', id: 'zurich' },
+                { city: 'Roma', region: 'Itália', timezone: 'Europe/Rome', id: 'rome' },
+
+                // Rússia (Multi-fuso)
+                { city: 'Kaliningrado', region: 'Rússia (Oeste)', timezone: 'Europe/Kaliningrad', id: 'kaliningrad' },
+                { city: 'Moscou', region: 'Rússia (Moscou)', timezone: 'Europe/Moscow', id: 'moscow' },
+                { city: 'Yekaterinburg', region: 'Rússia (Urais)', timezone: 'Asia/Yekaterinburg', id: 'yekaterinburg' },
+                { city: 'Vladivostok', region: 'Rússia (Leste)', timezone: 'Asia/Vladivostok', id: 'vladivostok' },
+
+                // --- ÁSIA E ORIENTE MÉDIO ---
+                { city: 'Dubai', region: 'Emirados Árabes', timezone: 'Asia/Dubai', id: 'dubai' },
+                { city: 'Baku', region: 'Azerbaijão', timezone: 'Asia/Baku', id: 'baku' },
+                { city: 'Mumbai', region: 'Índia', timezone: 'Asia/Kolkata', id: 'mumbai' },
+                { city: 'Bangkok', region: 'Tailândia', timezone: 'Asia/Bangkok', id: 'bangkok' },
+                { city: 'Singapura', region: 'Singapura', timezone: 'Asia/Singapore', id: 'singapore' },
+                { city: 'Pequim', region: 'China', timezone: 'Asia/Shanghai', id: 'beijing' },
+                { city: 'Tóquio', region: 'Japão', timezone: 'Asia/Tokyo', id: 'tokyo' },
+
+                // --- OCEANIA ---
+                
+                // Austrália (Multi-fuso)
+                { city: 'Perth', region: 'Austrália (Oeste)', timezone: 'Australia/Perth', id: 'perth' },
+                { city: 'Darwin', region: 'Austrália (Central)', timezone: 'Australia/Darwin', id: 'darwin' },
+                { city: 'Sydney', region: 'Austrália (Leste)', timezone: 'Australia/Sydney', id: 'sydney' },
+                
+                // Nova Zelândia
+                { city: 'Auckland', region: 'Nova Zelândia', timezone: 'Pacific/Auckland', id: 'auckland' },
+                
+                // --- ÁFRICA ---
+                { city: 'Cairo', region: 'Egito', timezone: 'Africa/Cairo', id: 'cairo' },
+                { city: 'Joanesburgo', region: 'África do Sul', timezone: 'Africa/Johannesburg', id: 'johannesburg' },
+            ];
+
+            const grid = document.getElementById('clocks-grid');
+
+            // 1. Criar os cartões de relógio dinamicamente
+            locations.forEach(loc => {
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center text-center transform transition-transform duration-300 hover:scale-105 hover:shadow-xl";
+                
+                card.innerHTML = `
+                    <h3 class="text-2xl font-semibold text-green-800">${loc.city}</h3>
+                    <p class="text-sm text-gray-500 mb-4">${loc.region}</p>
+                    
+                    <!-- Hora -->
+                    <div id="time-${loc.id}" class="text-5xl font-bold text-gray-900 mb-2 tabular-nums">
+                        --:--:--
+                    </div>
+                    
+                    <!-- Data -->
+                    <div id="date-${loc.id}" class="text-lg text-gray-600">
+                        ---
+                    </div>
+                    
+                    <!-- Fuso Horário -->
+                    <div class="text-xs text-gray-400 mt-4">
+                        ${loc.timezone}
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            // Formatadores de data e hora (para eficiência)
+            const timeFormatters = {};
+            const dateFormatters = {};
+
+            // 2. Função para atualizar os relógios
+            function updateClocks() {
+                const now = new Date();
+
+                locations.forEach(loc => {
+                    const timeEl = document.getElementById(`time-${loc.id}`);
+                    const dateEl = document.getElementById(`date-${loc.id}`);
+
+                    if (!timeEl || !dateEl) return;
+
+                    try {
+                        // Cache de formatadores para melhor performance
+                        if (!timeFormatters[loc.timezone]) {
+                            timeFormatters[loc.timezone] = new Intl.DateTimeFormat('pt-BR', {
+                                timeZone: loc.timezone,
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                                hour12: false
+                            });
+                        }
+                        
+                        if (!dateFormatters[loc.timezone]) {
+                            dateFormatters[loc.timezone] = new Intl.DateTimeFormat('pt-BR', {
+                                timeZone: loc.timezone,
+                                weekday: 'long',
+                                day: 'numeric',
+                                month: 'long'
+                            });
+                        }
+
+                        // Atualiza o texto
+                        const timeString = timeFormatters[loc.timezone].format(now);
+                        const dateString = dateFormatters[loc.timezone].format(now);
+                        
+                        timeEl.textContent = timeString;
+                        // Capitaliza o dia da semana (ex: "segunda-feira" -> "Segunda-feira")
+                        dateEl.textContent = dateString.charAt(0).toUpperCase() + dateString.slice(1);
+
+                    } catch (e) {
+                        console.error(`Erro ao formatar data para ${loc.timezone}:`, e);
+                        timeEl.textContent = "Erro";
+                        dateEl.textContent = "Fuso inválido";
+                    }
+                });
+            }
+
+            // 3. Iniciar os relógios
+            updateClocks(); // Chama imediatamente para preencher
+            setInterval(updateClocks, 1000); // Atualiza a cada segundo
+        });
+    </script>
+
+</body>
+</html>
+
+
