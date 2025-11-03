@@ -42,7 +42,7 @@
             <h2 class="text-2xl font-bold text-green-900 mb-6">Conversor de Fuso Horário</h2>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
                 
-                <!-- Coluna 1: Data e Hora (RESTAURADA) -->
+                <!-- Coluna 1: Data e Hora -->
                 <div class="space-y-4">
                     <div>
                         <label for="convert-date" class="block text-sm font-medium text-gray-700 mb-1">Data:</label>
@@ -119,6 +119,7 @@
                 // Estados Unidos
                 { group: "Estados Unidos", city: "Nova Iorque (NY)", region: "EUA (Leste)", timezone: "America/New_York" },
                 { group: "Estados Unidos", city: "Miami (Flórida)", region: "EUA (Leste)", timezone: "America/New_York" },
+                { group: "Estados Unidos", city: "Boston (MA)", region: "EUA (Leste)", timezone: "America/New_York" },
                 { group: "Estados Unidos", city: "Chicago (IL)", region: "EUA (Central)", timezone: "America/Chicago" },
                 { group: "Estados Unidos", city: "Denver (CO)", region: "EUA (Montanha)", timezone: "America/Denver" },
                 { group: "Estados Unidos", city: "Los Angeles (CA)", region: "EUA (Pacífico)", timezone: "America/Los_Angeles" },
@@ -176,7 +177,6 @@
             const dateInput = document.getElementById('convert-date');
             const timeInput = document.getElementById('convert-time');
             
-            // Novas referências para os inputs e dropdowns pesquisáveis
             const fromZoneInput = document.getElementById('convert-from-input');
             const fromZoneDropdown = document.getElementById('convert-from-dropdown');
             const toZoneInput = document.getElementById('convert-to-input');
@@ -189,8 +189,7 @@
             function setupSearchableSelect(inputEl, dropdownEl, locations, defaultValue) {
                 const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
                 
-                // Limpa o dropdown
-                dropdownEl.innerHTML = '';
+                dropdownEl.innerHTML = ''; // Limpa o dropdown
 
                 // Adiciona o fuso do usuário como primeira opção
                 const userOption = document.createElement('div');
@@ -200,7 +199,6 @@
                 userOption.dataset.searchText = `seu fuso horário ${userTimezone}`.toLowerCase();
                 dropdownEl.appendChild(userOption);
                 
-                // Adiciona um separador
                 const separator = document.createElement('div');
                 separator.className = "p-1 bg-gray-50 text-center text-xs text-gray-400";
                 separator.textContent = '──────────';
@@ -232,11 +230,11 @@
                 
                 // Evento: Lógica de seleção (clicar num item)
                 dropdownEl.addEventListener('click', (e) => {
-                    const target = e.target.closest('div');
+                    const target = e.target.closest('div[data-value]');
                     if (target && target.dataset.value) {
-                        inputEl.value = target.textContent;       // Define o texto visível
-                        inputEl.dataset.value = target.dataset.value; // Define o valor real
-                        dropdownEl.classList.add('hidden');       // Esconde o dropdown
+                        inputEl.value = target.textContent;
+                        inputEl.dataset.value = target.dataset.value;
+                        dropdownEl.classList.add('hidden');
                     }
                 });
                 
@@ -248,9 +246,7 @@
                 }
             }
 
-            // Função principal para popular os seletores
             function populateConverterSelects() {
-                // Ordena as localizações alfabeticamente por cidade
                 const sortedLocations = [...allLocations].sort((a, b) => a.city.localeCompare(b.city));
                 
                 setupSearchableSelect(fromZoneInput, fromZoneDropdown, sortedLocations, 'America/New_York');
@@ -260,25 +256,20 @@
             function setConverterDefaults() {
                 const now = new Date();
                 
-                // Formata a data para YYYY-MM-DD
                 const year = now.getFullYear();
                 const month = (now.getMonth() + 1).toString().padStart(2, '0');
                 const day = now.getDate().toString().padStart(2, '0');
                 dateInput.value = `${year}-${month}-${day}`;
 
-                // Formata a hora para HH:MM
                 const hours = now.getHours().toString().padStart(2, '0');
                 const minutes = now.getMinutes().toString().padStart(2, '0');
                 timeInput.value = `${hours}:${minutes}`;
-                
-                // Os valores padrão dos fusos agora são definidos em setupSearchableSelect
             }
 
-            // Função de Conversão (CORRIGIDA)
+            // Função de Conversão (CORRIGIDA E ROBUSTA)
             function handleConversion() {
                 const dateValue = dateInput.value;
                 const timeValue = timeInput.value;
-                // Lê o valor a partir do 'data-value' do input
                 const fromZoneValue = fromZoneInput.dataset.value;
                 const toZoneValue = toZoneInput.dataset.value;
 
@@ -289,25 +280,76 @@
                     return;
                 }
 
-                // Bloco try...catch (CORRIGIDO)
                 try {
-                    const dateTimeString = `${dateValue}T${timeValue}`;
+                    const dateTimeString = `${dateValue}T${timeValue}`; // Ex: "2025-11-03T10:00"
+                    const tempDate = new Date(dateTimeString); // Ex: 10:00 *Local* (Brasília)
                     
-                    // Esta é a lógica mais simples. Assume que o usuário
-                    // inseriu a hora no fuso horário *local do navegador*.
-                    const localDate = new Date(dateTimeString);
-
-                    if (isNaN(localDate.getTime())) {
-                        throw new Error('Data ou hora inválida.');
+                    if (isNaN(tempDate.getTime())) {
+                         throw new Error('Data ou hora inválida nos campos de input.');
                     }
                     
-                    // Formatar para a zona de destino
+                    // Formatadores (Usamos 'sv-SE' (Sueco) porque dá um formato ISO-like "YYYY-MM-DD HH:MM:SS"
+                    // que o 'new Date()' consegue interpretar de forma fiável quando adicionamos 'Z')
+                    const utcFormatter = new Intl.DateTimeFormat('sv-SE', {
+                        timeZone: 'UTC',
+                        year: 'numeric', month: 'numeric', day: 'numeric',
+                        hour: 'numeric', minute: 'numeric', second: 'numeric',
+                        hourCycle: 'h23' // Garante 00-23h
+                    });
+                    const fromFormatter = new Intl.DateTimeFormat('sv-SE', {
+                        timeZone: fromZoneValue,
+                        year: 'numeric', month: 'numeric', day: 'numeric',
+                        hour: 'numeric', minute: 'numeric', second: 'numeric',
+                        hourCycle: 'h23' // Garante 00-23h
+                    });
+
+                    // 1. Pega a hora local (10:00 Brasília) e vê que horas são em UTC e no fuso 'De:'
+                    // O .replace(' ', 'T') é crucial para o new Date()
+                    const localAsUTCStr = utcFormatter.format(tempDate).replace(' ', 'T'); // Ex: "2025-11-03T13:00:00"
+                    const localAsFromStr = fromFormatter.format(tempDate).replace(' ', 'T'); // Ex: "2025-11-03T08:00:00" (se 'De:' for NY)
+
+                    // 2. Parseia-as como datas UTC (adicionando 'Z')
+                    const dateLocalAsUTC = new Date(localAsUTCStr + 'Z');
+                    const dateLocalAsFrom = new Date(localAsFromStr + 'Z');
+
+                    if (isNaN(dateLocalAsUTC.getTime()) || isNaN(dateLocalAsFrom.getTime())) {
+                        throw new Error('Não foi possível obter o fuso horário de origem (Passo 2).');
+                    }
+
+                    // 3. Offset do fuso 'De:' (From - UTC) em minutos
+                    const fromOffsetMinutes = (dateLocalAsFrom.getTime() - dateLocalAsUTC.getTime()) / (60 * 1000); // Ex: -300 (NY)
+                    
+                    // 4. Offset Local (UTC - Local) em minutos
+                    const localOffsetMinutes = tempDate.getTimezoneOffset(); // Ex: 180 (Brasília)
+
+                    // 5. Data que o usuário digitou (interpretada localmente)
+                    const baseDate = new Date(dateTimeString); // 10:00 Local (Brasília)
+
+                    // 6. Calcular a diferença (em minutos) entre o fuso local e o fuso 'De:'
+                    // (UTC - Local) - (UTC - From) = (From - Local)
+                    // (localOffsetMinutes) - (-fromOffsetMinutes)
+                    // Ex: (180) - (300) = -120 minutos. (Brasília é 2h *à frente* de NY)
+                    const diffMinutes = localOffsetMinutes - (-fromOffsetMinutes);
+
+                    // 7. Ajustar a baseDate.
+                    // Queremos o timestamp que representa 10:00 no fuso 'De:'.
+                    // O 'baseDate' (10:00 Local) está 'diffMinutes' adiantado (ou atrasado).
+                    // Devemos subtrair a diferença.
+                    // 10:00 Local - (-120) = 10:00 Local + 120 mins = 12:00 Local.
+                    // 12:00 em Brasília é, de facto, 10:00 em NY. O timestamp está correto.
+                    baseDate.setMinutes(baseDate.getMinutes() - diffMinutes);
+
+                    if (isNaN(baseDate.getTime())) {
+                        throw new Error('Data ou hora inválida após ajuste de fuso.');
+                    }
+                    
+                    // 8. Formatar o timestamp correto para o fuso 'Para:'
                     const toFormatter = new Intl.DateTimeFormat('pt-BR', {
                         timeZone: toZoneValue,
                         dateStyle: 'full',
                         timeStyle: 'long',
                     });
-                    const convertedTime = toFormatter.format(localDate);
+                    const convertedTime = toFormatter.format(baseDate);
 
                     resultDiv.textContent = `Resultado: ${convertedTime}`;
                     resultDiv.classList.remove('text-red-600');
@@ -315,7 +357,7 @@
 
                 } catch (error) {
                     console.error("Erro na conversão:", error);
-                    resultDiv.textContent = `Erro: ${error.message}`;
+                    resultDiv.textContent = `Erro: ${error.message || 'Fuso horário inválido'}`;
                     resultDiv.classList.remove('text-green-800');
                     resultDiv.classList.add('text-red-600');
                 }
@@ -323,7 +365,16 @@
 
 
             // 2. Funções de Exibição dos Relógios
-            function createClockCard(location) {
+            
+            // CORREÇÃO: Gerador de ID único para os relógios
+            function generateUniqueID(location, index) {
+                // Remove caracteres inválidos do fuso e adiciona o índice
+                const safeTimezone = location.timezone.replace(/[\/]/g, '-');
+                return `${safeTimezone}-${index}`;
+            }
+
+            function createClockCard(location, index) {
+                const uniqueID = generateUniqueID(location, index);
                 const card = document.createElement('div');
                 card.className = 'clock-card p-5 bg-gray-50 rounded-lg shadow-sm border border-gray-200';
                 card.dataset.searchText = `${location.city} ${location.region} ${location.group}`.toLowerCase();
@@ -335,10 +386,10 @@
                             <p class="text-sm text-gray-500">${location.region}</p>
                         </div>
                         <div class="text-right">
-                            <div id="time-${location.timezone.replace(/[\/]/g, '-')}" class="text-3xl font-bold text-gray-900">
+                            <div id="time-${uniqueID}" class="text-3xl font-bold text-gray-900">
                                 00:00:00
                             </div>
-                            <div id="date-${location.timezone.replace(/[\/]/g, '-')}" class="text-sm text-gray-500">
+                            <div id="date-${uniqueID}" class="text-sm text-gray-500">
                                 ---
                             </div>
                         </div>
@@ -350,11 +401,11 @@
             function updateClocks() {
                 const now = new Date();
                 
-                locations.forEach(location => {
-                    const timeEl = document.getElementById(`time-${location.timezone.replace(/[\/]/g, '-')}`);
-                    const dateEl = document.getElementById(`date-${location.timezone.replace(/[\/]/g, '-')}`);
+                locations.forEach((location, index) => {
+                    const uniqueID = generateUniqueID(location, index);
+                    const timeEl = document.getElementById(`time-${uniqueID}`);
+                    const dateEl = document.getElementById(`date-${uniqueID}`);
 
-                    // Proteção caso o elemento não exista (devido à filtragem)
                     if (!timeEl || !dateEl) return; 
 
                     try {
@@ -414,7 +465,6 @@
 
             // 4. Inicialização
             
-            // Agrupa as localizações
             const groupedLocations = locations.reduce((acc, loc) => {
                 if (!acc[loc.group]) {
                     acc[loc.group] = [];
@@ -423,10 +473,8 @@
                 return acc;
             }, {});
 
-            // Ordena os grupos
             const sortedGroupKeys = Object.keys(groupedLocations).sort();
 
-            // Popula o container
             for (const groupName of sortedGroupKeys) {
                 const groupContainer = document.createElement('div');
                 groupContainer.className = 'clock-group space-y-4';
@@ -435,12 +483,14 @@
                 groupTitle.className = 'text-lg font-semibold text-gray-700 border-b-2 border-green-800 pb-2';
                 groupTitle.textContent = groupName;
                 groupContainer.appendChild(groupTitle);
-                
+
                 const cardsGrid = document.createElement('div');
                 cardsGrid.className = 'grid grid-cols-1 md:grid-cols-2 gap-4';
                 
-                groupedLocations[groupName].forEach(location => {
-                    const card = createClockCard(location);
+                groupedLocations[groupName].forEach((location) => {
+                    // Passa o índice original da lista 'locations' para garantir IDs únicos
+                    const originalIndex = locations.indexOf(location);
+                    const card = createClockCard(location, originalIndex);
                     cardsGrid.appendChild(card);
                 });
                 
@@ -462,12 +512,17 @@
 
             // 6. Adicionar listener para fechar dropdowns ao clicar fora
             document.addEventListener('click', (e) => {
-                // Não fechar se clicar no próprio input
-                if (!e.target.closest('#convert-from-input') && !e.target.closest('#convert-from-dropdown')) {
-                    fromZoneDropdown.classList.add('hidden');
+                const fromInput = document.getElementById('convert-from-input');
+                const fromDropdown = document.getElementById('convert-from-dropdown');
+                const toInput = document.getElementById('convert-to-input');
+                const toDropdown = document.getElementById('convert-to-dropdown');
+
+                // Evita fechar se clicar no próprio input
+                if (!fromInput.contains(e.target) && !fromDropdown.contains(e.target)) {
+                    fromDropdown.classList.add('hidden');
                 }
-                if (!e.target.closest('#convert-to-input') && !e.target.closest('#convert-to-dropdown')) {
-                    toZoneDropdown.classList.add('hidden');
+                if (!toInput.contains(e.target) && !toDropdown.contains(e.target)) {
+                    toDropdown.classList.add('hidden');
                 }
             });
         });
@@ -475,4 +530,5 @@
 
 </body>
 </html>
+
 
